@@ -12,8 +12,9 @@ const { LLMChain } = require('langchain/chains');
 // Import the PromptTemplate module
 const { PromptTemplate } = require('langchain/prompts');
 
-const generateLesson = async ({ message }) => {
-    //Instantiate the BufferMemory passing the memory key for storing state
+const generateLesson = async ({ topic, lessonDuration, ageGroup }) => {
+    // Instantiate the BufferMemory passing the memory key for storing state
+    // https://stackoverflow.com/questions/76941870/valueerror-one-input-key-expected-got-text-one-text-two-in-langchain-wit
     const memory = new BufferMemory({ memoryKey: 'chat_history' });
 
     //Instantiante the OpenAI model
@@ -27,23 +28,23 @@ const generateLesson = async ({ message }) => {
     //Create the template. The template is actually a "parameterized prompt". A "parameterized prompt" is a prompt in which the input parameter names are used and the parameter values are supplied from external input
     //Note the input variables {chat_history} and {input}
     const template = `The AI should act as a primary teacher who is an expert in lesson plans and produce lesson plans on the given topic. If the topic passed in is inexplicable just mention that it is not possible to generate a lesson plan.
-    The lesson plan should cover a school term and not just be a once off. It should produce learning outcomes across multiple days and provide suggestions on how they can be completed, you can suggest things such as: materials, sample lesson ideas, discussion prompts, visual prompts, project work, art activities, external speakers, online resources and links to other subjects etc.
-    Current conversation:
-    {chat_history}
-    Topic for lesson plan: {input}
-    AI:`;
+    The lesson plan should cover the specified time span that will be provided. It should produce learning outcomes across the duration of the specified time span and provide suggestions on how they can be completed, you must suggest things such as: materials, sample lesson ideas, discussion prompts, visual prompts, project work, art activities, external speakers, online resources and links to other subjects etc.
+    The lesson should also be tailored to the age group provided by the teacher.
+    Topic for lesson plan: {topic}
+    Lesson Plan Duration: {lessonDuration}
+    Age Group for lesson plan: {ageGroup}`;
 
     //Instantiate "PromptTemplate" passing the prompt template string initialized above
     const prompt = PromptTemplate.fromTemplate(template);
 
     //Instantiate LLMChain, which consists of a PromptTemplate, an LLM and memory.
-    const chain = new LLMChain({ llm: model, prompt, memory });
+    const chain = new LLMChain({ llm: model, prompt });
 
-    console.log({ message });
+    console.log({ topic, lessonDuration, ageGroup });
 
     //Run the chain passing a value for the {input} variable. The result will be stored in {chat_history}
-    const res1 = await chain.call({ input: message });
-    console.log({ res1 });
+    const response = await chain.call({ topic, lessonDuration, ageGroup });
+    console.log({ response });
 
     // //Run the chain again passing a value for the {input} variable. This time, the response from the last run ie. the  value in {chat_history} will alo be passed as part of the prompt
     // const res2 = await chain.call({ input: "What's my name?" });
@@ -53,7 +54,7 @@ const generateLesson = async ({ message }) => {
     // const res3 = await chain.call({ input: 'Which epic movie was I in and who was my protege?' });
     // console.log({ res3 });
     return {
-        data: res1.text,
+        data: response.text,
     };
 };
 
