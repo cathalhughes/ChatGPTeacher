@@ -1,5 +1,3 @@
-console.log(process.env.CHATGPT_TOKEN, 'service');
-
 // Import the OpenAPI Large Language Model (you can import other models here eg. Cohere)
 const { OpenAIChat } = require('langchain/llms/openai');
 
@@ -15,7 +13,7 @@ const { PromptTemplate } = require('langchain/prompts');
 const generateLesson = async ({ topic, lessonDuration, ageGroup }) => {
     // Instantiate the BufferMemory passing the memory key for storing state
     // https://stackoverflow.com/questions/76941870/valueerror-one-input-key-expected-got-text-one-text-two-in-langchain-wit
-    const memory = new BufferMemory({ memoryKey: 'chat_history' });
+    // const memory = new BufferMemory({ memoryKey: 'chat_history' });
 
     //Instantiante the OpenAI model
     //Pass the "temperature" parameter which controls the RANDOMNESS of the model's output. A lower temperature will result in more predictable output, while a higher temperature will result in more random output. The temperature parameter is set between 0 and 1, with 0 being the most predictable and 1 being the most random
@@ -23,6 +21,7 @@ const generateLesson = async ({ topic, lessonDuration, ageGroup }) => {
         openAIApiKey: process.env.CHATGPT_TOKEN,
         temperature: 0.9,
         modelName: 'gpt-3.5-turbo',
+        // modelName: 'gpt-4',
     });
 
     //Create the template. The template is actually a "parameterized prompt". A "parameterized prompt" is a prompt in which the input parameter names are used and the parameter values are supplied from external input
@@ -46,13 +45,6 @@ const generateLesson = async ({ topic, lessonDuration, ageGroup }) => {
     const response = await chain.call({ topic, lessonDuration, ageGroup });
     console.log({ response });
 
-    // //Run the chain again passing a value for the {input} variable. This time, the response from the last run ie. the  value in {chat_history} will alo be passed as part of the prompt
-    // const res2 = await chain.call({ input: "What's my name?" });
-    // console.log({ res2 });
-
-    // //BONUS!!
-    // const res3 = await chain.call({ input: 'Which epic movie was I in and who was my protege?' });
-    // console.log({ res3 });
     return {
         data: response.text,
     };
